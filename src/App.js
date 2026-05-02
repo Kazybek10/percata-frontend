@@ -11,7 +11,7 @@ function App() {
 
   return (
     <div>
-      <h1>Percata</h1>
+      <h1>PERCATA</h1>
       {movies.map(movie => (
         <p key={movie.id}>{movie.title}</p>
       ))}
