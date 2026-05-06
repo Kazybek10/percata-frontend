@@ -83,3 +83,24 @@ body {
 .search::placeholder {
   color: #555;
 }
+
+.nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.nav-btn {
+  padding: 8px 20px;
+  background-color: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #888;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.nav-btn.active {
+  border-color: #f0f0f0;
+  color: #f0f0f0;
+}
