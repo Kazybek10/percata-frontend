@@ -23,6 +23,7 @@ function App() {
               <h2>{movie.title}</h2>
               <span className="genre">{movie.genre}</span>
               <span className="year">{movie.release_year}</span>
+              <span className="rating">★ {movie.rating ? movie.rating : "No rating"}</span>
             </div>
           </div>
         ))}
