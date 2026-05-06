@@ -3,6 +3,7 @@ import "./App.css";
 
 function App() {
   const [movies, setMovies] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:3001/movies.json")
@@ -10,11 +11,22 @@ function App() {
       .then(data => setMovies(data));
   }, []);
 
+  const filtered = movies.filter(movie =>
+    movie.title.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="app">
       <h1 className="title">PERCATA</h1>
+      <input
+        className="search"
+        type="text"
+        placeholder="Search movies..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+      />
       <div className="grid">
-        {movies.map(movie => (
+        {filtered.map(movie => (
           <div className="card" key={movie.id}>
             {movie.poster_url && (
               <img src={movie.poster_url} alt={movie.title} className="poster" />
