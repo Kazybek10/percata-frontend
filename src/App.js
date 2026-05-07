@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import ItemCard from "./ItemCard";
 
 function App() {
   const [items, setItems] = useState([]);
@@ -48,21 +49,7 @@ function App() {
       />
       <div className="grid">
         {filtered.map(item => (
-          <div className="card" key={item.id}>
-            {item.cover_url || item.poster_url ? (
-              <img
-                src={item.cover_url || item.poster_url}
-                alt={item.title}
-                className="poster"
-              />
-            ) : null}
-            <div className="card-info">
-              <h2>{item.title}</h2>
-              <span className="genre">{item.genre}</span>
-              <span className="year">{item.release_year || item.publish_year}</span>
-              <span className="rating">★ {item.rating ? item.rating : "No rating"}</span>
-            </div>
-          </div>
+        <ItemCard key={item.id} item={item} />
         ))}
       </div>
     </div>
