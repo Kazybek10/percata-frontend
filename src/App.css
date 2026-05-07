@@ -104,3 +104,52 @@ body {
   border-color: #f0f0f0;
   color: #f0f0f0;
 }
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.back-btn {
+  background: none;
+  border: 1px solid #2a2a2a;
+  color: #888;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 32px;
+  font-size: 0.9rem;
+}
+
+.back-btn:hover {
+  color: #f0f0f0;
+  border-color: #f0f0f0;
+}
+
+.detail {
+  display: flex;
+  gap: 40px;
+}
+
+.detail-poster {
+  width: 250px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-info h1 {
+  font-size: 2rem;
+}
+
+.description {
+  color: #aaa;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
