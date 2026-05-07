@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import ItemCard from "./ItemCard";
+import ItemDetail from "./ItemDetail";
 
 function App() {
   const [items, setItems] = useState([]);
@@ -18,41 +20,48 @@ function App() {
   );
 
   return (
-    <div className="app">
-      <h1 className="title">PERCATA</h1>
-      <nav className="nav">
-        <button
-          className={activeTab === "movies" ? "nav-btn active" : "nav-btn"}
-          onClick={() => setActiveTab("movies")}
-        >
-          Movies
-        </button>
-        <button
-          className={activeTab === "books" ? "nav-btn active" : "nav-btn"}
-          onClick={() => setActiveTab("books")}
-        >
-          Books
-        </button>
-        <button
-          className={activeTab === "recipes" ? "nav-btn active" : "nav-btn"}
-          onClick={() => setActiveTab("recipes")}
-        >
-          Recipes
-        </button>
-      </nav>
-      <input
-        className="search"
-        type="text"
-        placeholder={`Search ${activeTab}...`}
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
-      <div className="grid">
-        {filtered.map(item => (
-        <ItemCard key={item.id} item={item} />
-        ))}
+    <BrowserRouter>
+      <div className="app">
+        <h1 className="title">PERCATA</h1>
+        <nav className="nav">
+          <button
+            className={activeTab === "movies" ? "nav-btn active" : "nav-btn"}
+            onClick={() => setActiveTab("movies")}
+          >
+            Movies
+          </button>
+          <button
+            className={activeTab === "books" ? "nav-btn active" : "nav-btn"}
+            onClick={() => setActiveTab("books")}
+          >
+            Books
+          </button>
+          <button
+            className={activeTab === "recipes" ? "nav-btn active" : "nav-btn"}
+            onClick={() => setActiveTab("recipes")}
+          >
+            Recipes
+          </button>
+        </nav>
+        <input
+          className="search"
+          type="text"
+          placeholder={`Search ${activeTab}...`}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <Routes>
+          <Route path="/" element={
+            <div className="grid">
+              {filtered.map(item => (
+                <ItemCard key={item.id} item={item} tab={activeTab} />
+              ))}
+            </div>
+          } />
+          <Route path="/:tab/:id" element={<ItemDetail />} />
+        </Routes>
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
 
