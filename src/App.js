@@ -68,9 +68,13 @@ function App() {
               {error && <p className="status error">{error}</p>}
               {!loading && !error && (
                 <div className="grid">
-                  {filtered.map(item => (
-                    <ItemCard key={item.id} item={item} tab={activeTab} />
-                  ))}
+                  {filtered.length === 0 ? (
+                    <p className="status">No results found for "{search}"</p>
+                  ) : (
+                    filtered.map(item => (
+                      <ItemCard key={item.id} item={item} tab={activeTab} />
+                    ))
+                  )}
                 </div>
               )}
             </>
