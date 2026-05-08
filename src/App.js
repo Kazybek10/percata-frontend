@@ -10,6 +10,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("movies");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState("newest");
 
   useEffect(() => {
     setLoading(true);
@@ -26,9 +27,13 @@ function App() {
       });
   }, [activeTab]);
 
-  const filtered = items.filter(item =>
-    item.title.toLowerCase().includes(search.toLowerCase())
-  );
+const filtered = items
+  .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
+  .sort((a, b) => {
+    const yearA = a.release_year || a.publish_year || 0;
+    const yearB = b.release_year || b.publish_year || 0;
+    return sortBy === "newest" ? yearB - yearA : yearA - yearB;
+  });
 
   return (
     <BrowserRouter>
@@ -61,6 +66,14 @@ function App() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+        <select
+        className="sort-select"
+        value={sortBy}
+        onChange={e => setSortBy(e.target.value)}
+        >
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        </select>
         <Routes>
           <Route path="/" element={
             <>
