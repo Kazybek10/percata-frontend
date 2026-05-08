@@ -153,3 +153,12 @@ body {
   max-width: 600px;
 }
 
+.status {
+  color: #888;
+  font-size: 1rem;
+  margin-top: 40px;
+}
+
+.error {
+  color: #e55;
+}
