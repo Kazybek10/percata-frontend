@@ -8,11 +8,22 @@ function App() {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("movies");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     fetch(`http://localhost:3001/${activeTab}.json`)
       .then(res => res.json())
-      .then(data => setItems(data));
+      .then(data => {
+        setItems(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError("Failed to load data. Is the server running?");
+        setLoading(false);
+      });
   }, [activeTab]);
 
   const filtered = items.filter(item =>
@@ -52,11 +63,17 @@ function App() {
         />
         <Routes>
           <Route path="/" element={
-            <div className="grid">
-              {filtered.map(item => (
-                <ItemCard key={item.id} item={item} tab={activeTab} />
-              ))}
-            </div>
+            <>
+              {loading && <p className="status">Loading...</p>}
+              {error && <p className="status error">{error}</p>}
+              {!loading && !error && (
+                <div className="grid">
+                  {filtered.map(item => (
+                    <ItemCard key={item.id} item={item} tab={activeTab} />
+                  ))}
+                </div>
+              )}
+            </>
           } />
           <Route path="/:tab/:id" element={<ItemDetail />} />
         </Routes>
