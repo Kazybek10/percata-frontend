@@ -24,8 +24,8 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
 }
 
 .card {
@@ -172,4 +172,18 @@ body {
   font-size: 0.9rem;
   margin-bottom: 32px;
   cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .detail {
+    flex-direction: column;
+  }
+
+  .detail-poster {
+    width: 100%;
+  }
 }
