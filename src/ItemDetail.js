@@ -7,7 +7,7 @@ function ItemDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`http://localhost:3001/${tab}/${id}.json`)
+    fetch(`${process.env.REACT_APP_API_URL}/${tab}/${id}.json`)
       .then(res => res.json())
       .then(data => setItem(data));
   }, [tab, id]);

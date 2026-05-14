@@ -15,7 +15,7 @@ function App() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(`http://localhost:3001/${activeTab}.json`)
+    fetch(`${process.env.REACT_APP_API_URL}/${activeTab}.json`)
       .then(res => res.json())
       .then(data => {
         setItems(data);
