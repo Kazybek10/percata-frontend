@@ -11,6 +11,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
+  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -27,6 +28,10 @@ function App() {
       });
   }, [activeTab]);
 
+  useEffect(() => {
+  document.body.style.backgroundColor = darkMode ? "#0f0f0f" : "#f5f5f5";
+  }, [darkMode]);
+
 const filtered = items
   .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
   .sort((a, b) => {
@@ -37,8 +42,13 @@ const filtered = items
 
   return (
     <BrowserRouter>
-      <div className="app">
-        <h1 className="title">PERCATA</h1>
+      <div className={darkMode ? "app dark" : "app light"}>
+        <div className="header">
+          <h1 className="title">PERCATA</h1>
+          <button className="mode-btn" onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? "🌙" : "☀️"}
+          </button>
+        </div>
         <nav className="nav">
           <button
             className={activeTab === "movies" ? "nav-btn active" : "nav-btn"}
