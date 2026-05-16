@@ -11,7 +11,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+  return localStorage.getItem("darkMode") !== "false";
+  });
 
   useEffect(() => {
     setLoading(true);
@@ -30,6 +32,7 @@ function App() {
 
   useEffect(() => {
   document.body.style.backgroundColor = darkMode ? "#0f0f0f" : "#f5f5f5";
+   localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
 const filtered = items
