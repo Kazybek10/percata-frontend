@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
+import { AuthProvider, useAuth } from "./AuthContext";
+import LoginPage from "./LoginPage";
 import ItemCard from "./ItemCard";
 import ItemDetail from "./ItemDetail";
 
-function App() {
+function AppInner() {
+  const { user, logout } = useAuth();
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("movies");
@@ -51,6 +54,7 @@ const filtered = items
           <button className="mode-btn" onClick={() => setDarkMode(!darkMode)}>
             {darkMode ? "🌙" : "☀️"}
           </button>
+          {user && <button className="mode-btn" onClick={logout}>Logout</button>}
         </div>
         <nav className="nav">
           <button
@@ -106,9 +110,18 @@ const filtered = items
             </>
           } />
           <Route path="/:tab/:id" element={<ItemDetail />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </div>
     </BrowserRouter>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }
 
