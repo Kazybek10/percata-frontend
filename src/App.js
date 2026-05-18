@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import LoginPage from "./LoginPage";
 import ItemCard from "./ItemCard";
 import ItemDetail from "./ItemDetail";
+import PrivateRoute from "./PrivateRoute";
 
 function AppInner() {
   const { user, logout } = useAuth();
@@ -15,7 +16,7 @@ function AppInner() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
   const [darkMode, setDarkMode] = useState(() => {
-  return localStorage.getItem("darkMode") !== "false";
+    return localStorage.getItem("darkMode") !== "false";
   });
 
   useEffect(() => {
@@ -34,17 +35,17 @@ function AppInner() {
   }, [activeTab]);
 
   useEffect(() => {
-  document.body.style.backgroundColor = darkMode ? "#0f0f0f" : "#f5f5f5";
-   localStorage.setItem("darkMode", darkMode);
+    document.body.style.backgroundColor = darkMode ? "#0f0f0f" : "#f5f5f5";
+    localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
-const filtered = items
-  .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
-  .sort((a, b) => {
-    const yearA = a.release_year || a.publish_year || 0;
-    const yearB = b.release_year || b.publish_year || 0;
-    return sortBy === "newest" ? yearB - yearA : yearA - yearB;
-  });
+  const filtered = items
+    .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      const yearA = a.release_year || a.publish_year || 0;
+      const yearB = b.release_year || b.publish_year || 0;
+      return sortBy === "newest" ? yearB - yearA : yearA - yearB;
+    });
 
   return (
     <BrowserRouter>
@@ -84,32 +85,34 @@ const filtered = items
           onChange={e => setSearch(e.target.value)}
         />
         <select
-        className="sort-select"
-        value={sortBy}
-        onChange={e => setSortBy(e.target.value)}
+          className="sort-select"
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
         >
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
         </select>
         <Routes>
-          <Route path="/" element={
-            <>
-              {loading && <p className="status">Loading...</p>}
-              {error && <p className="status error">{error}</p>}
-              {!loading && !error && (
-                <div className="grid">
-                  {filtered.length === 0 ? (
-                    <p className="status">No results found for "{search}"</p>
-                  ) : (
-                    filtered.map(item => (
-                      <ItemCard key={item.id} item={item} tab={activeTab} />
-                    ))
-                  )}
-                </div>
-              )}
-            </>
+          <path path="/" element={
+            <PrivateRoute>
+              <>
+                {loading && <p className="status">Loading...</p>}
+                {error && <p className="status error">{error}</p>}
+                {!loading && !error && (
+                  <div className="grid">
+                    {filtered.length === 0 ? (
+                      <p className="status">No results found for "{search}"</p>
+                    ) : (
+                      filtered.map(item => (
+                        <ItemCard key={item.id} item={item} tab={activeTab} />
+                      ))
+                    )}
+                  </div>
+                )}
+              </>
+            </PrivateRoute>
           } />
-          <Route path="/:tab/:id" element={<ItemDetail />} />
+          <Route path="/:tab/:id" element={<PrivateRoute><ItemDetail /></PrivateRoute>} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </div>
