@@ -15,6 +15,8 @@ function AppInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 8;
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("darkMode") !== "false";
   });
@@ -39,6 +41,10 @@ function AppInner() {
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
+  useEffect(() => {
+  setPage(1);
+  }, [activeTab, search]);
+
   const filtered = items
     .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
@@ -46,6 +52,9 @@ function AppInner() {
       const yearB = b.release_year || b.publish_year || 0;
       return sortBy === "newest" ? yearB - yearA : yearA - yearB;
     });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <BrowserRouter>
@@ -93,21 +102,30 @@ function AppInner() {
           <option value="oldest">Oldest first</option>
         </select>
         <Routes>
-          <path path="/" element={
+          <Route path="/" element={
             <PrivateRoute>
               <>
                 {loading && <p className="status">Loading...</p>}
                 {error && <p className="status error">{error}</p>}
                 {!loading && !error && (
+                  <>
                   <div className="grid">
                     {filtered.length === 0 ? (
                       <p className="status">No results found for "{search}"</p>
                     ) : (
-                      filtered.map(item => (
+                      paginated.map(item => (
                         <ItemCard key={item.id} item={item} tab={activeTab} />
                       ))
                     )}
                   </div>
+                    {totalPages > 1 && (
+                      <div className="pagination">
+                        <button onClick={() => setPage(p => p - 1)} disabled={page === 1}>Prev</button>
+                        <span>{page} / {totalPages}</span>
+                        <button onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Next</button>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             </PrivateRoute>
