@@ -15,6 +15,7 @@ function AppInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
+  const [genre, setGenre] = useState("");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 8;
   const [darkMode, setDarkMode] = useState(() => {
@@ -42,17 +43,24 @@ function AppInner() {
   }, [darkMode]);
 
   useEffect(() => {
-  setPage(1);
-  }, [activeTab, search]);
+    setPage(1);
+    setGenre("");
+  }, [activeTab]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, genre]);
 
   const filtered = items
     .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
+    .filter(item => !genre || item.genre === genre)
     .sort((a, b) => {
       const yearA = a.release_year || a.publish_year || 0;
       const yearB = b.release_year || b.publish_year || 0;
       return sortBy === "newest" ? yearB - yearA : yearA - yearB;
     });
 
+  const genres = [...new Set(items.map(item => item.genre).filter(Boolean))].sort();
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -98,6 +106,16 @@ function AppInner() {
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
         >
+        <select
+          className="sort-select"
+          value={genre}
+          onChange={e => setGenre(e.target.value)}
+        >
+          <option value="">All genres</option>
+          {genres.map(g => (
+            <option key={g} value={g}>{g}</option>
+          ))}
+        </select>
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
         </select>
