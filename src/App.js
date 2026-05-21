@@ -16,6 +16,9 @@ function AppInner() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
   const [genre, setGenre] = useState("");
+  const [globalQuery, setGlobalQuery] = useState("");
+  const [globalResults, setGlobalResults] = useState([]);
+  const [globalLoading, setGlobalLoading] = useState(false);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 8;
   const [darkMode, setDarkMode] = useState(() => {
@@ -51,6 +54,27 @@ function AppInner() {
     setPage(1);
   }, [search, genre]);
 
+  useEffect(() => {
+    if (!globalQuery.trim()) {
+      setGlobalResults([]);
+      return;
+    }
+    setGlobalLoading(true);
+    Promise.all(
+      ["movies", "books", "recipes"].map(tab =>
+        fetch(`${process.env.REACT_APP_API_URL}/${tab}.json`)
+          .then(res => res.json())
+          .then(data => data.map(item => ({ ...item, tab })))
+      )
+    ).then(results => {
+      const all = results.flat().filter(item =>
+        item.title.toLowerCase().includes(globalQuery.toLowerCase())
+      );
+      setGlobalResults(all);
+      setGlobalLoading(false);
+    }).catch(() => setGlobalLoading(false));
+  }, [globalQuery]);
+
   const filtered = items
     .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
     .filter(item => !genre || item.genre === genre)
@@ -73,7 +97,26 @@ function AppInner() {
             {darkMode ? "🌙" : "☀️"}
           </button>
           {user && <button className="mode-btn" onClick={logout}>Logout</button>}
+          <input
+            className="search"
+            style={{ maxWidth: 220 }}
+            placeholder="Search everything..."
+            value={globalQuery}
+            onChange={e => setGlobalQuery(e.target.value)}
+          />
         </div>
+         {globalQuery ? (
+          <div className="grid" style={{ marginTop: 24 }}>
+            {globalLoading && <p className="status">Searching...</p>}
+            {!globalLoading && globalResults.length === 0 && (
+              <p className="status">No results for "{globalQuery}"</p>
+            )}
+            {globalResults.map(item => (
+              <ItemCard key={`${item.tab}-${item.id}`} item={item} tab={item.tab} />
+            ))}
+          </div>
+         ) : (
+          <>
         <nav className="nav">
           <button
             className={activeTab === "movies" ? "nav-btn active" : "nav-btn"}
@@ -106,6 +149,9 @@ function AppInner() {
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
         >
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
         <select
           className="sort-select"
           value={genre}
@@ -115,9 +161,6 @@ function AppInner() {
           {genres.map(g => (
             <option key={g} value={g}>{g}</option>
           ))}
-        </select>
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
         </select>
         <Routes>
           <Route path="/" element={
@@ -151,6 +194,8 @@ function AppInner() {
           <Route path="/:tab/:id" element={<PrivateRoute><ItemDetail /></PrivateRoute>} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
+        </>
+         )}
       </div>
     </BrowserRouter>
   );
