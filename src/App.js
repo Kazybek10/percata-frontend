@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import "./App.css";
 import { AuthProvider, useAuth } from "./AuthContext";
 import LoginPage from "./LoginPage";
@@ -7,8 +7,10 @@ import NotFoundPage from "./NotFoundPage";
 import ItemCard from "./ItemCard";
 import ItemDetail from "./ItemDetail";
 import PrivateRoute from "./PrivateRoute";
+import ProfilePage from "./ProfilePage";
 
 function AppInner() {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
@@ -97,6 +99,7 @@ function AppInner() {
           <button className="mode-btn" onClick={() => setDarkMode(!darkMode)}>
             {darkMode ? "🌙" : "☀️"}
           </button>
+          {user && <button className="mode-btn" onClick={() => navigate("/profile")}>Profile</button>}
           {user && <button className="mode-btn" onClick={logout}>Logout</button>}
           <input
             className="search"
@@ -194,6 +197,7 @@ function AppInner() {
           } />
           <Route path="/:tab/:id" element={<PrivateRoute><ItemDetail /></PrivateRoute>} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </>
