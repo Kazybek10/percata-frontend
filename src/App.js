@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import { AuthProvider, useAuth } from "./AuthContext";
 import LoginPage from "./LoginPage";
+import NotFoundPage from "./NotFoundPage";
 import ItemCard from "./ItemCard";
 import ItemDetail from "./ItemDetail";
 import PrivateRoute from "./PrivateRoute";
@@ -193,6 +194,7 @@ function AppInner() {
           } />
           <Route path="/:tab/:id" element={<PrivateRoute><ItemDetail /></PrivateRoute>} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </>
          )}
