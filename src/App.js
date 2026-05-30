@@ -99,6 +99,7 @@ function AppInner() {
           <button className="mode-btn" onClick={() => setDarkMode(!darkMode)}>
             {darkMode ? "🌙" : "☀️"}
           </button>
+          {!user && <button className="mode-btn" onClick={() => navigate("/login")}>Login</button>}
           {user && <button className="mode-btn" onClick={() => navigate("/profile")}>Profile</button>}
           {user && <button className="mode-btn" onClick={logout}>Logout</button>}
           <input
