@@ -203,6 +203,10 @@ function AppInner() {
         </Routes>
         </>
          )}
+         <footer className="footer">
+          <span>© 2026 Percata</span>
+          <span>Movies · Books · Recipes</span>
+         </footer>
       </div>
     </BrowserRouter>
   );

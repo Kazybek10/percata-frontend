@@ -236,3 +236,19 @@ body {
   border-color: #e0e0e0;
   color: #444;
 }
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 80px;
+  padding: 24px 0;
+  border-top: 1px solid #2a2a2a;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.light .footer {
+  border-top-color: #e0e0e0;
+  color: #aaa;
+}
