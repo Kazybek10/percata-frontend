@@ -92,7 +92,6 @@ function AppInner() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <BrowserRouter>
       <div className={darkMode ? "app dark" : "app light"}>
         <div className="header">
           <h1 className="title">PERCATA</h1>
@@ -208,14 +207,15 @@ function AppInner() {
           <span>Movies · Books · Recipes</span>
          </footer>
       </div>
-    </BrowserRouter>
   );
 }
 
 function App() {
   return (
     <AuthProvider>
-      <AppInner />
+      <BrowserRouter>
+        <AppInner />
+      </BrowserRouter>
     </AuthProvider>
   );
 }
