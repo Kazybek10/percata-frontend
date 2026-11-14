@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
-import { AuthProvider, useAuth } from "./AuthContext";
-import LoginPage from "./LoginPage";
-import NotFoundPage from "./NotFoundPage";
 import ItemCard from "./ItemCard";
 import ItemDetail from "./ItemDetail";
-import PrivateRoute from "./PrivateRoute";
-import ProfilePage from "./ProfilePage";
+import NotFoundPage from "./NotFoundPage";
+
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
 function AppInner() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("movies");
@@ -29,18 +25,29 @@ function AppInner() {
   });
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch(`${process.env.REACT_APP_API_URL}/${activeTab}.json`)
-      .then(res => res.json())
+
+    fetch(`${API_URL}/${activeTab}.json`)
+      .then(res => {
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        setItems(data);
+        if (cancelled) return;
+        setItems(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(err => {
-        setError("Failed to load data. Is the server running?");
+      .catch(() => {
+        if (cancelled) return;
+        setError("Failed to load data. Is the API running?");
         setLoading(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab]);
 
   useEffect(() => {
@@ -58,28 +65,52 @@ function AppInner() {
   }, [search, genre]);
 
   useEffect(() => {
-    if (!globalQuery.trim()) {
+    const query = globalQuery.trim();
+
+    if (!query) {
       setGlobalResults([]);
+      setGlobalLoading(false);
       return;
     }
+
+    let cancelled = false;
     setGlobalLoading(true);
-    Promise.all(
-      ["movies", "books", "recipes"].map(tab =>
-        fetch(`${process.env.REACT_APP_API_URL}/${tab}.json`)
-          .then(res => res.json())
-          .then(data => data.map(item => ({ ...item, tab })))
+
+    const timer = setTimeout(() => {
+      Promise.all(
+        ["movies", "books", "recipes"].map(tab =>
+          fetch(`${API_URL}/${tab}.json`)
+            .then(res => (res.ok ? res.json() : []))
+            .then(data =>
+              Array.isArray(data) ? data.map(item => ({ ...item, tab })) : []
+            )
+        )
       )
-    ).then(results => {
-      const all = results.flat().filter(item =>
-        item.title.toLowerCase().includes(globalQuery.toLowerCase())
-      );
-      setGlobalResults(all);
-      setGlobalLoading(false);
-    }).catch(() => setGlobalLoading(false));
+        .then(results => {
+          if (cancelled) return;
+          const all = results
+            .flat()
+            .filter(item =>
+              (item.title || "").toLowerCase().includes(query.toLowerCase())
+            );
+          setGlobalResults(all);
+          setGlobalLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setGlobalResults([]);
+          setGlobalLoading(false);
+        });
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [globalQuery]);
 
   const filtered = items
-    .filter(item => item.title.toLowerCase().includes(search.toLowerCase()))
+    .filter(item => (item.title || "").toLowerCase().includes(search.toLowerCase()))
     .filter(item => !genre || item.genre === genre)
     .sort((a, b) => {
       const yearA = a.release_year || a.publish_year || 0;
@@ -92,131 +123,141 @@ function AppInner() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-      <div className={darkMode ? "app dark" : "app light"}>
-        <div className="header">
-          <h1 className="title">PERCATA</h1>
-          <button className="mode-btn" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? "🌙" : "☀️"}
-          </button>
-          {!user && <button className="mode-btn" onClick={() => navigate("/login")}>Login</button>}
-          {user && <button className="mode-btn" onClick={() => navigate("/profile")}>Profile</button>}
-          {user && <button className="mode-btn" onClick={logout}>Logout</button>}
-          <input
-            className="search"
-            style={{ maxWidth: 220 }}
-            placeholder="Search everything..."
-            value={globalQuery}
-            onChange={e => setGlobalQuery(e.target.value)}
-          />
-        </div>
-         {globalQuery ? (
-          <div className="grid" style={{ marginTop: 24 }}>
-            {globalLoading && <p className="status">Searching...</p>}
-            {!globalLoading && globalResults.length === 0 && (
-              <p className="status">No results for "{globalQuery}"</p>
-            )}
-            {globalResults.map(item => (
-              <ItemCard key={`${item.tab}-${item.id}`} item={item} tab={item.tab} />
-            ))}
-          </div>
-         ) : (
-          <>
-        <nav className="nav">
-          <button
-            className={activeTab === "movies" ? "nav-btn active" : "nav-btn"}
-            onClick={() => setActiveTab("movies")}
-          >
-            Movies
-          </button>
-          <button
-            className={activeTab === "books" ? "nav-btn active" : "nav-btn"}
-            onClick={() => setActiveTab("books")}
-          >
-            Books
-          </button>
-          <button
-            className={activeTab === "recipes" ? "nav-btn active" : "nav-btn"}
-            onClick={() => setActiveTab("recipes")}
-          >
-            Recipes
-          </button>
-        </nav>
+    <div className={darkMode ? "app dark" : "app light"}>
+      <div className="header">
+        <h1 className="title">PERCATA</h1>
+        <button className="mode-btn" onClick={() => setDarkMode(!darkMode)}>
+          {darkMode ? "🌙" : "☀️"}
+        </button>
         <input
           className="search"
-          type="text"
-          placeholder={`Search ${activeTab}...`}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+          style={{ maxWidth: 220 }}
+          placeholder="Search everything..."
+          value={globalQuery}
+          onChange={e => setGlobalQuery(e.target.value)}
         />
-        <select
-          className="sort-select"
-          value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
-        >
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-        </select>
-        <select
-          className="sort-select"
-          value={genre}
-          onChange={e => setGenre(e.target.value)}
-        >
-          <option value="">All genres</option>
-          {genres.map(g => (
-            <option key={g} value={g}>{g}</option>
-          ))}
-        </select>
-        <Routes>
-          <Route path="/" element={
-            <PrivateRoute>
+      </div>
+
+      {!globalQuery && (
+        <>
+          <nav className="nav">
+            <button
+              className={activeTab === "movies" ? "nav-btn active" : "nav-btn"}
+              onClick={() => setActiveTab("movies")}
+            >
+              Movies
+            </button>
+            <button
+              className={activeTab === "books" ? "nav-btn active" : "nav-btn"}
+              onClick={() => setActiveTab("books")}
+            >
+              Books
+            </button>
+            <button
+              className={activeTab === "recipes" ? "nav-btn active" : "nav-btn"}
+              onClick={() => setActiveTab("recipes")}
+            >
+              Recipes
+            </button>
+          </nav>
+          <input
+            className="search"
+            type="text"
+            placeholder={`Search ${activeTab}...`}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <select
+            className="sort-select"
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+          <select
+            className="sort-select"
+            value={genre}
+            onChange={e => setGenre(e.target.value)}
+          >
+            <option value="">All genres</option>
+            {genres.map(g => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+
+      <Routes>
+        <Route
+          path="/"
+          element={
+            globalQuery ? (
+              <div className="grid" style={{ marginTop: 24 }}>
+                {globalLoading && <p className="status">Searching...</p>}
+                {!globalLoading && globalResults.length === 0 && (
+                  <p className="status">No results for "{globalQuery}"</p>
+                )}
+                {globalResults.map(item => (
+                  <ItemCard key={`${item.tab}-${item.id}`} item={item} tab={item.tab} />
+                ))}
+              </div>
+            ) : (
               <>
                 {loading && <p className="status">Loading...</p>}
                 {error && <p className="status error">{error}</p>}
                 {!loading && !error && (
                   <>
-                  <div className="grid">
-                    {filtered.length === 0 ? (
-                      <p className="status">No results found for "{search}"</p>
-                    ) : (
-                      paginated.map(item => (
-                        <ItemCard key={item.id} item={item} tab={activeTab} />
-                      ))
-                    )}
-                  </div>
+                    <div className="grid">
+                      {filtered.length === 0 ? (
+                        <p className="status">No results found for "{search}"</p>
+                      ) : (
+                        paginated.map(item => (
+                          <ItemCard key={item.id} item={item} tab={activeTab} />
+                        ))
+                      )}
+                    </div>
                     {totalPages > 1 && (
                       <div className="pagination">
-                        <button onClick={() => setPage(p => p - 1)} disabled={page === 1}>Prev</button>
-                        <span>{page} / {totalPages}</span>
-                        <button onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Next</button>
+                        <button onClick={() => setPage(p => p - 1)} disabled={page === 1}>
+                          Prev
+                        </button>
+                        <span>
+                          {page} / {totalPages}
+                        </span>
+                        <button
+                          onClick={() => setPage(p => p + 1)}
+                          disabled={page === totalPages}
+                        >
+                          Next
+                        </button>
                       </div>
                     )}
                   </>
                 )}
               </>
-            </PrivateRoute>
-          } />
-          <Route path="/:tab/:id" element={<PrivateRoute><ItemDetail /></PrivateRoute>} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-        </>
-         )}
-         <footer className="footer">
-          <span>© 2026 Percata</span>
-          <span>Movies · Books · Recipes</span>
-         </footer>
-      </div>
+            )
+          }
+        />
+        <Route path="/:tab/:id" element={<ItemDetail />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+
+      <footer className="footer">
+        <span>© 2026 Percata</span>
+        <span>Movies · Books · Recipes</span>
+      </footer>
+    </div>
   );
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppInner />
-      </BrowserRouter>
-    </AuthProvider>
+    <BrowserRouter>
+      <AppInner />
+    </BrowserRouter>
   );
 }
 
